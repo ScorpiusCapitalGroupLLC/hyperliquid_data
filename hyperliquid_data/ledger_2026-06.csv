@@ -1,0 +1,3 @@
+_key,_ts,time_ms,time_iso,hash,type,usdc,amount,token,delta_json
+ledger-c734aa6bd162364b184912e4589d8f1b31d13ae4,1781254615097,1781254615097,2026-06-12T16:56:55.097000+08:00,0xc2697cec241bf44fa646cee8f4aa4f300bf516ad1f60e1bf74462f5b1a45729e,deposit,10.0,,,"{""type"": ""deposit"", ""usdc"": ""10.0""}"
+ledger-842f67dbf02ec0c529b1ab0cdf53b7ea23cfb5e8,1781255647734,1781255647734,2026-06-12T17:14:07.734000+08:00,0xf2e772501337d4c37074d023a59f45dba2a2d5f4dc8673a2c6a4c3349c5c39ad,deposit,90.0,,,"{""type"": ""deposit"", ""usdc"": ""90.0""}"
