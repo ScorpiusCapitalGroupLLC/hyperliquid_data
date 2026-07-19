@@ -1,0 +1,50 @@
+name: hyperliquid-backup
+
+on:
+  schedule:
+    - cron: "0 20 * * *"     # UTC 20:00 = 北京时间次日 04:00
+  workflow_dispatch:          # 支持在网页上手动点「Run workflow」
+
+concurrency:
+  group: hl-backup
+  cancel-in-progress: false   # 上一次还没跑完就排队，不并发、不取消
+
+permissions:
+  contents: write             # 允许把数据 push 回仓库
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run backup
+        env:
+          HL_WALLET: ${{ secrets.HL_WALLET }}
+        run: python hl_backup.py
+
+      - name: Commit & push data
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add hyperliquid_data
+          if git diff --staged --quiet; then
+            echo "无变化，跳过提交"
+            exit 0
+          fi
+          git commit -m "backup: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          # 先把远程最新改动 rebase 进来再 push；CSV 为只追加，极少冲突。
+          # 万一发生冲突，优先保留本地刚备份的数据（-X ours），保证不丢新数据。
+          if ! git pull --rebase -X ours origin "${GITHUB_REF_NAME}"; then
+            echo "rebase 失败，放弃 rebase 并尝试普通合并"
+            git rebase --abort || true
+            git pull --no-rebase -X ours origin "${GITHUB_REF_NAME}"
+          fi
+          git push origin "HEAD:${GITHUB_REF_NAME}"
